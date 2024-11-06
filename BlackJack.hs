@@ -3,7 +3,7 @@ import Cards
 import RunGame
 import Test.QuickCheck
 
---A0
+-----------------------A0
 hand2 = 
     --Add (Card Ace Spades)
     (Add (Card (Numeric 3) Hearts)
