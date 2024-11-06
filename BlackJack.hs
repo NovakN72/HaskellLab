@@ -6,7 +6,7 @@ import Test.QuickCheck
 --A0
 hand2 = 
     --Add (Card Ace Spades)
-    (Add (Card (Numeric 2) Hearts)
+    (Add (Card (Numeric 3) Hearts)
     (Add (Card (Numeric 2) Hearts)
             (Add (Card Jack Spades) Empty)))
 
