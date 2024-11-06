@@ -44,6 +44,8 @@ display (Add card hand) = displayCard card ++ display hand
 
 
 -----------------------A2
+
+--TODO: FIX this lockally(with where)
 valueRank :: Rank -> Integer
 valueRank r = 
     case r of 
@@ -56,6 +58,7 @@ valueRank r =
 initialValue :: Hand -> Integer
 initialValue Empty = 0
 initialValue (Add card hand) = valueRank (rank card) + initialValue hand
+
 
 
 numberOfAces :: Hand -> Integer
