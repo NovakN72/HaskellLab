@@ -6,15 +6,15 @@ import Test.QuickCheck
 -----------------------A0
 hand2 = 
     --Add (Card Ace Spades)
-    (Add (Card (Numeric 3) Hearts)
+  --  (Add (Card (Numeric 3) Hearts)
     (Add (Card (Numeric 2) Hearts)
-            (Add (Card Jack Spades) Empty)))
+            (Add (Card Jack Spades) Empty))
 
 hand3 = 
    -- Add (Card Ace Spades)
    -- (Add (Card (Numeric 2) Hearts)
-    (Add (Card (Numeric 2) Hearts)
-            (Add (Card Jack Spades) Empty))
+    (Add (Card (Numeric 4) Hearts)
+            (Add (Card Queen Spades) Empty))
 
 
 cardEx :: Card
@@ -93,4 +93,12 @@ winner guest bank
     | value guest == value bank = Bank 
 
 
+
+
+-----------------------B1
+(<+) :: Hand -> Hand -> Hand
+(<+) Empty Empty = Empty 
+(<+) Empty hand' = hand'
+(<+) hand Empty = hand
+(<+) (Add card hand) hand' = Add card ((<+) hand hand')
 
