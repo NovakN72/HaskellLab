@@ -2,6 +2,7 @@ module BlackJack where
 import Cards
 import RunGame
 import Test.QuickCheck
+import System.Random
 
 -----------------------A0
 hand2 = 
@@ -134,14 +135,16 @@ draw (Add card hand) hand' = (hand,Add card hand')
 
 -----------------------B4
 playBankHelper :: Hand -> Hand -> (Hand,Hand)
-playBankHelper deck hand = (smallerDeck,biggerHand)
-    where (smallerDeck,biggerHand) = draw deck hand
+playBankHelper deck hand = 
+    case (draw deck hand) of 
+        (smallerDeck,biggerHand) 
+            | value biggerHand < 16 -> playBankHelper smallerDeck biggerHand
+            | otherwise             -> (smallerDeck,biggerHand)
 
 
 playBank :: Hand -> Hand
-playBank hand =
-    case (playBankHelper fullDeck hand) of 
-        (smallerDeck,biggerHand)
-            | value biggerHand < 16 -> playBank biggerHand
-            | otherwise -> biggerHand
-
+playBank hand = second (playBankHelper fullDeck hand)
+    where 
+        second :: (a, b) -> b 
+        second (x,y) = y
+    
