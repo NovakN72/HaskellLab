@@ -95,9 +95,9 @@ winner guest bank
 
 -----------------------B1
 (<+) :: Hand -> Hand -> Hand
-(<+) Empty Empty = Empty 
-(<+) Empty hand' = hand'
-(<+) hand Empty = hand
+(<+) Empty Empty           = Empty 
+(<+) Empty hand'           = hand'
+(<+) hand Empty            = hand
 (<+) (Add card hand) hand' = Add card ((<+) hand hand')
 
 
@@ -111,20 +111,37 @@ prop_size_onTopOf p1 p2 = size (p1 <+ p2) == (size p1) + (size p2)
 
 
 -----------------------B2
-mixcards :: [Rank] -> [Suit] -> [Card]
-mixcards ranks suits = [ Card r s | r <- ranks, s <- suits]
+fullDeckList :: [Rank] -> [Suit] -> [Card]
+fullDeckList ranks suits = [ Card r s | r <- ranks, s <- suits]
 
 convertToHand :: [Card] -> Hand
-convertToHand [] = Empty
+convertToHand []           = Empty
 convertToHand (card:cards) = Add card (convertToHand cards)
 
 fullDeck :: Hand
-fullDeck = convertToHand (mixcards ranks suits) 
+fullDeck      = convertToHand (fullDeckList ranks suits) 
     where 
         suits = [Hearts, Spades, Diamonds,Clubs]
         ranks = [Numeric 2,Numeric 3,Numeric 4,Numeric 5,Numeric 6,
                 Numeric 7,Numeric 8,Numeric 9,Numeric 10,Jack,Queen,King,Ace]
 
 
+-----------------------B3
+draw :: Hand -> Hand -> (Hand,Hand)
+draw Empty hand'           = error "draw: The deck is empty."  
+draw (Add card hand) hand' = (hand,Add card hand')
 
+
+-----------------------B4
+playBankHelper :: Hand -> Hand -> (Hand,Hand)
+playBankHelper deck hand = (smallerDeck,biggerHand)
+    where (smallerDeck,biggerHand) = draw deck hand
+
+
+playBank :: Hand -> Hand
+playBank hand =
+    case (playBankHelper fullDeck hand) of 
+        (smallerDeck,biggerHand)
+            | value biggerHand < 16 -> playBank biggerHand
+            | otherwise -> biggerHand
 
