@@ -7,14 +7,14 @@ import Test.QuickCheck
 hand2 = 
     --Add (Card Ace Spades)
   --  (Add (Card (Numeric 3) Hearts)
-    (Add (Card (Numeric 2) Hearts)
-            (Add (Card Jack Spades) Empty))
+    (Add (Card (Numeric 4) Clubs)
+            (Add (Card Queen Hearts) Empty))
 
 hand3 = 
    -- Add (Card Ace Spades)
    -- (Add (Card (Numeric 2) Hearts)
-    (Add (Card (Numeric 4) Hearts)
-            (Add (Card Queen Spades) Empty))
+    (Add (Card (Numeric 10) Hearts)
+            (Add (Card Ace Spades) Empty))
 
 
 cardEx :: Card
@@ -75,7 +75,6 @@ value hand
     | initialValue hand > 21 = initialValue hand - ((numberOfAces hand) * 10)
 
 
-
     
 -----------------------A3
 gameOver :: Hand -> Bool
@@ -94,11 +93,38 @@ winner guest bank
 
 
 
-
 -----------------------B1
 (<+) :: Hand -> Hand -> Hand
 (<+) Empty Empty = Empty 
 (<+) Empty hand' = hand'
 (<+) hand Empty = hand
 (<+) (Add card hand) hand' = Add card ((<+) hand hand')
+
+
+prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool 
+prop_onTopOf_assoc p1 p2 p3 = p1<+(p2<+p3) == (p1<+p2)<+p3
+
+
+prop_size_onTopOf :: Hand -> Hand -> Bool
+prop_size_onTopOf p1 p2 = size (p1 <+ p2) == (size p1) + (size p2)
+
+
+
+-----------------------B2
+mixcards :: [Rank] -> [Suit] -> [Card]
+mixcards ranks suits = [ Card r s | r <- ranks, s <- suits]
+
+convertToHand :: [Card] -> Hand
+convertToHand [] = Empty
+convertToHand (card:cards) = Add card (convertToHand cards)
+
+fullDeck :: Hand
+fullDeck = convertToHand (mixcards ranks suits) 
+    where 
+        suits = [Hearts, Spades, Diamonds,Clubs]
+        ranks = [Numeric 2,Numeric 3,Numeric 4,Numeric 5,Numeric 6,
+                Numeric 7,Numeric 8,Numeric 9,Numeric 10,Jack,Queen,King,Ace]
+
+
+
 
