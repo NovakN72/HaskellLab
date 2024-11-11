@@ -147,4 +147,22 @@ playBank hand = second (playBankHelper fullDeck hand)
     where 
         second :: (a, b) -> b 
         second (x,y) = y
-    
+
+-----------------------B5 
+getNth :: Integer -> Hand -> Card
+getNth n (Add card hand) 
+    | n /= 0 = getNth (n-1) hand
+    | n == 0 = card
+
+
+deleteNth :: Card -> Hand -> Hand
+deleteNth c Empty = Empty
+deleteNth c (Add card hand)
+    | c == card = deleteNth c hand
+    | c /= card = Add card (deleteNth c hand)
+
+
+shuffleDeck :: StdGen -> Hand -> Hand
+shuffleDeck g fullDeck 
+
+
