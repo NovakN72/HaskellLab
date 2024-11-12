@@ -18,9 +18,12 @@ hand3 =
             (Add (Card Ace Spades) Empty))
 
 
+
 cardEx :: Card
 cardEx = Card Jack Hearts 
 
+g :: StdGen
+g = mkStdGen 42
 
             
 sizeSteps :: [Integer]
@@ -150,19 +153,57 @@ playBank hand = second (playBankHelper fullDeck hand)
 
 -----------------------B5 
 getNth :: Integer -> Hand -> Card
+getNth 0 (Add card hand) = card 
 getNth n (Add card hand) 
-    | n /= 0 = getNth (n-1) hand
-    | n == 0 = card
+    | n > 0              = getNth (n-1) hand
+    | otherwise          = error "index out of bounds"
 
 
-deleteNth :: Card -> Hand -> Hand
-deleteNth c Empty = Empty
-deleteNth c (Add card hand)
-    | c == card = deleteNth c hand
-    | c /= card = Add card (deleteNth c hand)
+deleteNth :: Integer -> Hand -> Hand
+deleteNth 0 (Add card hand) = hand
+deleteNth n (Add card hand) = Add card (deleteNth (n-1) hand)
+   
 
+shuffleDeckHelper :: StdGen -> Hand -> Hand -> (Hand,Hand)
+shuffleDeckHelper g Empty shuffledDeck = (Empty,shuffledDeck)
+shuffleDeckHelper g deck shuffledDeck  = 
+    let 
+        (index, g') = randomR (0, ((size deck) - 1)) g
+        card        = getNth index deck
+        newDeck     = deleteNth index deck
+    in shuffleDeckHelper g' newDeck (Add card shuffledDeck)
+       
 
 shuffleDeck :: StdGen -> Hand -> Hand
-shuffleDeck g fullDeck 
+shuffleDeck g deck = second (shuffleDeckHelper g deck Empty)
+        where 
+          second :: (a, b) -> b 
+          second (x,y) = y
 
 
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool 
+prop_shuffle_sameCards g c h = c `belongsTo` h == c `belongsTo` shuffleDeck g h
+
+belongsTo :: Card -> Hand -> Bool 
+c `belongsTo` Empty = False 
+c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+
+
+prop_size_shuffle :: StdGen -> Hand -> Bool
+prop_size_shuffle g h = size h == size (shuffleDeck g h)
+
+
+implementation = Interface
+  { iFullDeck = fullDeck
+  , iValue    = value
+  , iDisplay  = display
+  , iGameOver = gameOver
+  , iWinner   = winner 
+  , iDraw     = draw
+  , iPlayBank = playBank
+  , iShuffle  = shuffleDeck
+  }
+
+
+main :: IO () 
+main = runGame implementation
