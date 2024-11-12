@@ -91,8 +91,10 @@ gameOver hand
 winner :: Hand -> Hand -> Player
 winner guest bank
     | gameOver guest && gameOver bank = Bank 
-    | gameOver bank || value guest > value bank = Guest
-    | gameOver guest || value guest < value bank = Bank
+    | gameOver bank = Guest
+    | gameOver guest = Bank
+    | value guest > value bank = Guest
+    | value guest < value bank = Bank
     | value guest == value bank = Bank 
 
 
@@ -141,12 +143,12 @@ playBankHelper :: Hand -> Hand -> (Hand,Hand)
 playBankHelper deck hand = 
     case (draw deck hand) of 
         (smallerDeck,biggerHand) 
-            | value biggerHand < 16 -> playBankHelper smallerDeck biggerHand
+            | (value biggerHand) < 16 -> playBankHelper smallerDeck biggerHand
             | otherwise             -> (smallerDeck,biggerHand)
 
 
 playBank :: Hand -> Hand
-playBank hand = second (playBankHelper fullDeck hand)
+playBank hand = second (playBankHelper hand Empty)
     where 
         second :: (a, b) -> b 
         second (x,y) = y
