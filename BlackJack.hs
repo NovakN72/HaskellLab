@@ -4,31 +4,19 @@ import RunGame
 import Test.QuickCheck
 import System.Random
 
+{- Lab 2A
+   Date: November 13th 2024
+   Authors: Narimaun Novak, Martin Berntsson
+   Lab group: Group 48
+ -}
+
+
+
+
 -----------------------A0
-hand2 = 
-    --Add (Card Ace Spades)
-  --  (Add (Card (Numeric 3) Hearts)
-    (Add (Card (Numeric 4) Clubs)
-            (Add (Card Queen Hearts) Empty))
-
-hand3 = 
-   -- Add (Card Ace Spades)
-   -- (Add (Card (Numeric 2) Hearts)
-    (Add (Card (Numeric 10) Hearts)
-            (Add (Card Ace Spades) Empty))
-
-
-
-cardEx :: Card
-cardEx = Card Jack Hearts 
-
-g :: StdGen
-g = mkStdGen 42
-
-            
 sizeSteps :: [Integer]
-sizeSteps = [ size hand2
-            , size (Add (Card (Numeric 2) Hearts)
+sizeSteps = [ size hand2 
+            , size (Add (Card (Numeric 2) Hearts) 
                         (Add (Card Jack Spades) Empty))
             , 1 + size  (Add (Card Jack Spades) Empty)
             , 2 + size Empty
@@ -36,35 +24,37 @@ sizeSteps = [ size hand2
 
 
 -----------------------A1 
+--The card is numeric, return the number, otherwise its king,queen,jack or ace
 displayCard :: Card -> String 
 displayCard c = 
-    case rank c of 
-        Numeric n -> show n ++ " of " ++ show (suit c) ++ "\n"
-        _         -> show (rank c) ++ " of " ++ show (suit c) ++ "\n"
+    case rank c of  
+        Numeric n -> show n ++ " of " ++ show (suit c) ++ "\n"    
+        _         -> show (rank c) ++ " of " ++ show (suit c) ++ "\n" 
 
+--Recusively go through the hand and display every card
 display :: Hand -> String
 display Empty = []
 display (Add card hand) = displayCard card ++ display hand
 
 
 -----------------------A2
-
---TODO: FIX this lockally(with where)
-valueRank :: Rank -> Integer
-valueRank r = 
-    case r of 
-        Numeric n -> n
-        Jack -> 10
-        Queen -> 10
-        King -> 10 
-        Ace -> 11
-
+--The value of Empty is zero, otherwise Recusively go through the hand and calculate
+--the initial value. valueRank here is a local function and it just returns the value of different
+--ranks. 
 initialValue :: Hand -> Integer
 initialValue Empty = 0
 initialValue (Add card hand) = valueRank (rank card) + initialValue hand
+    where   
+        valueRank :: Rank -> Integer
+        valueRank r = 
+            case r of 
+                 Numeric n -> n
+                 Jack      -> 10
+                 Queen     -> 10
+                 King      -> 10 
+                 Ace       -> 11
 
-
-
+--Goes through hand and returns the number of aces.
 numberOfAces :: Hand -> Integer
 numberOfAces Empty = 0
 numberOfAces (Add card hand) = 
@@ -72,7 +62,8 @@ numberOfAces (Add card hand) =
         Ace -> 1 + numberOfAces hand
         _   -> numberOfAces hand
 
-
+--Counts the value of hand, it will return the value if it is less than or equal to 21
+--Otherwise decrease the value with (numberOfAces * 10)
 value :: Hand -> Integer
 value hand 
     | initialValue hand <= 21 = initialValue hand
@@ -81,6 +72,7 @@ value hand
 
     
 -----------------------A3
+--If the value of hand is more than 21, return False, otherwise True.
 gameOver :: Hand -> Bool
 gameOver hand 
    | value hand <= 21 = False
@@ -90,13 +82,11 @@ gameOver hand
 -----------------------A4
 winner :: Hand -> Hand -> Player
 winner guest bank
-    | gameOver guest && gameOver bank = Bank 
-    | gameOver bank = Guest
-    | gameOver guest = Bank
-    | value guest > value bank = Guest
-    | value guest < value bank = Bank
-    | value guest == value bank = Bank 
-
+    | gameOver guest                  = Bank --Guest is bust then bank wins
+    | gameOver bank                   = Guest --Bank is bust, guest wins
+    | value guest > value bank        = Guest --Value of guests hand is more than value of bank, guest wins
+    | value guest <= value bank       = Bank  --Value of bank is more than value of guest's hand, bank wins
+     
 
 
 -----------------------B1
@@ -120,9 +110,11 @@ prop_size_onTopOf p1 p2 = size (p1 <+ p2) == (size p1) + (size p2)
 fullDeckList :: [Rank] -> [Suit] -> [Card]
 fullDeckList ranks suits = [ Card r s | r <- ranks, s <- suits]
 
+
 convertToHand :: [Card] -> Hand
 convertToHand []           = Empty
 convertToHand (card:cards) = Add card (convertToHand cards)
+
 
 fullDeck :: Hand
 fullDeck      = convertToHand (fullDeckList ranks suits) 
@@ -143,7 +135,7 @@ playBankHelper :: Hand -> Hand -> (Hand,Hand)
 playBankHelper deck hand = 
     case (draw deck hand) of 
         (smallerDeck,biggerHand) 
-            | (value biggerHand) < 16 -> playBankHelper smallerDeck biggerHand
+            | value biggerHand < 16 -> playBankHelper smallerDeck biggerHand
             | otherwise             -> (smallerDeck,biggerHand)
 
 
@@ -185,6 +177,7 @@ shuffleDeck g deck = second (shuffleDeckHelper g deck Empty)
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool 
 prop_shuffle_sameCards g c h = c `belongsTo` h == c `belongsTo` shuffleDeck g h
+
 
 belongsTo :: Card -> Hand -> Bool 
 c `belongsTo` Empty = False 
