@@ -4,8 +4,8 @@ import RunGame
 import Test.QuickCheck
 import System.Random
 
-{- Lab 2A
-   Date: November 13th 2024
+{- Lab 2B
+   Date: November 14th 2024
    Authors: Narimaun Novak, Martin Berntsson
    Lab group: Group 48
  -}
@@ -14,6 +14,10 @@ import System.Random
 
 
 -----------------------A0
+hand2 = Add (Card (Numeric 2) Hearts)
+            (Add (Card Jack Spades) Empty)
+
+            
 sizeSteps :: [Integer]
 sizeSteps = [ size hand2 
             , size (Add (Card (Numeric 2) Hearts) 
@@ -90,32 +94,34 @@ winner guest bank
 
 
 -----------------------B1
+--Takes a hand, and recursively adds it to to the other hand. 
 (<+) :: Hand -> Hand -> Hand
 (<+) Empty Empty           = Empty 
 (<+) Empty hand'           = hand'
 (<+) hand Empty            = hand
 (<+) (Add card hand) hand' = Add card ((<+) hand hand')
 
-
+--Checking for assosiation properties 
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool 
 prop_onTopOf_assoc p1 p2 p3 = p1<+(p2<+p3) == (p1<+p2)<+p3
 
-
+--Checking if sizes sizes of the aftermatch is the same as both hands together.
 prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf p1 p2 = size (p1 <+ p2) == (size p1) + (size p2)
 
 
 
 -----------------------B2
+-- Makes a list of cards using list comprehension. 
 fullDeckList :: [Rank] -> [Suit] -> [Card]
 fullDeckList ranks suits = [ Card r s | r <- ranks, s <- suits]
 
-
+--Coverts the list of hand to the convetional Hand data type. 
 convertToHand :: [Card] -> Hand
 convertToHand []           = Empty
 convertToHand (card:cards) = Add card (convertToHand cards)
 
-
+--Builds a fulldeck using the helper methods above. 
 fullDeck :: Hand
 fullDeck      = convertToHand (fullDeckList ranks suits) 
     where 
@@ -125,12 +131,15 @@ fullDeck      = convertToHand (fullDeckList ranks suits)
 
 
 -----------------------B3
+--Draw a card for the deck, returns an erro if the deck is empty.
 draw :: Hand -> Hand -> (Hand,Hand)
 draw Empty hand'           = error "draw: The deck is empty."  
 draw (Add card hand) hand' = (hand,Add card hand')
 
 
 -----------------------B4
+--Draws a card for the bank, stops drawing a hand if the value of the banks hand is equal to or-
+--less than 16.
 playBankHelper :: Hand -> Hand -> (Hand,Hand)
 playBankHelper deck hand = 
     case (draw deck hand) of 
@@ -138,7 +147,7 @@ playBankHelper deck hand =
             | value biggerHand < 16 -> playBankHelper smallerDeck biggerHand
             | otherwise             -> (smallerDeck,biggerHand)
 
-
+--Takes the second argument of playBankHelper
 playBank :: Hand -> Hand
 playBank hand = second (playBankHelper hand Empty)
     where 
@@ -146,18 +155,20 @@ playBank hand = second (playBankHelper hand Empty)
         second (x,y) = y
 
 -----------------------B5 
+--Returns the Nth card in the deck.
 getNth :: Integer -> Hand -> Card
 getNth 0 (Add card hand) = card 
 getNth n (Add card hand) 
     | n > 0              = getNth (n-1) hand
     | otherwise          = error "index out of bounds"
 
-
+--Deletes the Nth card in the deck and returns the deck.
 deleteNth :: Integer -> Hand -> Hand
 deleteNth 0 (Add card hand) = hand
 deleteNth n (Add card hand) = Add card (deleteNth (n-1) hand)
    
-
+--uses stdGen to make random indexes to take cards from a non-shuffled deck to a shuffled deck.
+--Recursively Continues untill the unshuffled deck is Empty.  
 shuffleDeckHelper :: StdGen -> Hand -> Hand -> (Hand,Hand)
 shuffleDeckHelper g Empty shuffledDeck = (Empty,shuffledDeck)
 shuffleDeckHelper g deck shuffledDeck  = 
@@ -167,7 +178,7 @@ shuffleDeckHelper g deck shuffledDeck  =
         newDeck     = deleteNth index deck
     in shuffleDeckHelper g' newDeck (Add card shuffledDeck)
        
-
+--Returns the shuffled deck from the helper function above. 
 shuffleDeck :: StdGen -> Hand -> Hand
 shuffleDeck g deck = second (shuffleDeckHelper g deck Empty)
         where 
